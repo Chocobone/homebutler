@@ -1,0 +1,91 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/Higangssh/homebutler/internal/inventory"
+	"github.com/spf13/cobra"
+)
+
+func newInventoryCmd() *cobra.Command {
+	invCmd := &cobra.Command{
+		Use:   "inventory",
+		Short: "Collect and display server inventory/topology",
+		Long:  "Scan local server to collect system status, Docker containers, and open ports, then display as a tree or export as Mermaid diagram.",
+	}
+
+	invCmd.AddCommand(
+		newInventoryScanCmd(),
+		newInventoryShowCmd(),
+		newInventoryExportCmd(),
+	)
+
+	return invCmd
+}
+
+func newInventoryScanCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "scan",
+		Short: "Scan and display current server inventory",
+		RunE:  runInventoryScan,
+	}
+}
+
+func newInventoryShowCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "show",
+		Short: "Show current server inventory (same as scan)",
+		RunE:  runInventoryScan,
+	}
+}
+
+func runInventoryScan(cmd *cobra.Command, args []string) error {
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	inv, err := inventory.Collect(cfg, inventory.DefaultCollectFuncs())
+	if err != nil {
+		return fmt.Errorf("inventory scan failed: %w", err)
+	}
+
+	if jsonOutput {
+		return output(inv, true)
+	}
+	fmt.Print(inventory.RenderTree(inv))
+	return nil
+}
+
+func newInventoryExportCmd() *cobra.Command {
+	var format string
+
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Export inventory in a structured format",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := loadConfig(); err != nil {
+				return err
+			}
+
+			inv, err := inventory.Collect(cfg, inventory.DefaultCollectFuncs())
+			if err != nil {
+				return fmt.Errorf("inventory export failed: %w", err)
+			}
+
+			if jsonOutput {
+				return output(inv, true)
+			}
+
+			switch format {
+			case "mermaid":
+				fmt.Print(inventory.RenderMermaid(inv))
+			default:
+				return fmt.Errorf("unsupported format: %q (supported: mermaid)", format)
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&format, "format", "mermaid", "Export format (mermaid)")
+	return cmd
+}

@@ -64,6 +64,7 @@ That makes it useful both as a normal CLI and as the execution layer under tools
 - **App Install** — Deploy 15 self-hosted apps with one command (`uptime-kuma`, `jellyfin`, `pi-hole`, and more)
 - **System Status** — CPU, memory, disk, uptime at a glance
 - **Docker Management** — List, restart, stop, logs for containers
+- **Inventory & Topology** — Map servers, containers, exposed app ports, and system ports in a readable tree or Mermaid graph
 - **Multi-server** — Manage remote servers over SSH (key & password auth)
 - **Notifications** — Multi-channel notifications via Telegram, Slack, Discord, or generic webhook
 - **Backup & Restore** — One-command Docker volume backup with compose + env files
@@ -85,6 +86,42 @@ That makes it useful both as a normal CLI and as the execution layer under tools
 </p>
 
 > **`homebutler install uptime-kuma`** — Deploy self-hosted apps in seconds. Pre-checks Docker, ports, and duplicates. Generates `docker-compose.yml` automatically. [See all available apps →](#app-install)
+
+### 🗺️ Inventory & Topology
+
+```bash
+homebutler inventory scan
+homebutler inventory export --format mermaid
+homebutler --json inventory scan
+```
+
+`inventory scan` gives you a quick map of what is running on a server: system health, Docker containers, app ports, and system ports. Docker-published ports are connected back to the container that owns them, so local forwarding details like Colima/Lima stay understandable.
+
+```text
+🏠 Home Network
+   Server  homelab (192.168.1.10)
+   Summary ✅ 1 running · ⚪ 1 stopped · 🌍 2 public ports · 🔒 4 local ports
+
+📦 Containers (2)
+   ├─ ⚪ vaultwarden · not started
+   │  └─ image vaultwarden/server:latest
+   └─ ✅ api-server · running
+      ├─ image my-api:latest
+      └─ exposes :8080 → 8080/tcp
+
+🌐 App Ports (1)
+   └─ 🌍 :8080/tcp · api-server
+```
+
+Use Mermaid export when you want a diagram for GitHub, Obsidian, docs, or an AI assistant:
+
+```mermaid
+graph TD
+  home["🏠 Home Network"] --> homelab["🖥 homelab<br/>192.168.1.10"]
+  homelab --> c1["📦 api-server<br/>running"]
+  homelab --> p1["🌍 :8080/tcp<br/>api-server"]
+  c1 -. exposes .-> p1
+```
 
 ## Demo
 
