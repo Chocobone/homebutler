@@ -5,6 +5,12 @@
 # HomeButler
 
 <p align="center">
+  <img src="assets/mascot.png" alt="HomeButler mascot" width="180">
+  <br>
+  <sub><em>Your tiny homelab butler.</em></sub>
+</p>
+
+<p align="center">
   <a href="https://homebutler.dev">Website</a> · <a href="https://github.com/Higangssh/homebutler#readme">Docs</a> · <a href="https://github.com/Higangssh/homebutler/releases">Releases</a>
 </p>
 
